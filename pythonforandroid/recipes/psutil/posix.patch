@@ -1,0 +1,10 @@
+--- a/psutil/_psutil_posix.c.orig	2017-05-08 18:36:47.000000000 +0300
++++ b/psutil/_psutil_posix.c	2017-05-08 18:37:11.838458016 +0300
+@@ -24,6 +24,7 @@
+ #if defined(PSUTIL_LINUX)
+     #include <netdb.h>
+     #include <linux/if_packet.h>
++    #include <netinet/in.h>
+ #elif defined(PSUTIL_BSD) || defined(PSUTIL_OSX)
+     #include <netdb.h>
+     #include <netinet/in.h>

@@ -387,23 +387,23 @@ tools directory of the Android SDK.
                     help=('The name of the java package the project will be'
                           ' packaged under.'),
                     required=True)
-#     ap.add_argument('--name', dest='name',
-#                     help=('The human-readable name of the project.'),
-#                     required=True)
+    ap.add_argument('--name', dest='name',
+                     help=('The human-readable name of the project.'),
+                     required=False)
 #     ap.add_argument('--numeric-version', dest='numeric_version',
 #                     help=('The numeric version number of the project. If not '
 #                           'given, this is automatically computed from the '
 #                           'version.'))
-#     ap.add_argument('--version', dest='version',
-#                     help=('The version number of the project. This should '
-#                           'consist of numbers and dots, and should have the '
-#                           'same number of groups of numbers as previous '
-#                           'versions.'),
-#                     required=True)
-#     ap.add_argument('--orientation', dest='orientation', default='portrait',
-#                     help=('The orientation that the game will display in. '
-#                           'Usually one of "landscape", "portrait" or '
-#                           '"sensor"'))
+    ap.add_argument('--version', dest='version',
+                     help=('The version number of the project. This should '
+                           'consist of numbers and dots, and should have the '
+                           'same number of groups of numbers as previous '
+                           'versions.'),
+                     required=False)
+    ap.add_argument('--orientation', dest='orientation', default='portrait',
+                     help=('The orientation that the game will display in. '
+                           'Usually one of "landscape", "portrait" or '
+                           '"sensor"'))
 #     ap.add_argument('--icon', dest='icon',
 #                     help='A png file to use as the icon for the application.')
 #     ap.add_argument('--permission', dest='permissions', action='append',

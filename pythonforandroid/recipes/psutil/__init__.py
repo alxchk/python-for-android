@@ -14,7 +14,8 @@ class PsutilRecipe(CompiledComponentsPythonRecipe):
     url = 'https://github.com/giampaolo/psutil/archive/release-{version}.tar.gz'
     call_hostpython_via_targetpython = False
     depends = ['python2']
-    patches = ['ethtool.patch', 'mntent.patch', 'sched.patch', 'ifaddrs.patch', 'posix.patch']
+    patches = ['ethtool.patch', 'mntent.patch', 'sched.patch', 'ifaddrs.patch', 
+        'posix.patch', 'compat.patch', 'setup.py.patch']
 
     def get_recipe_env(self, arch):
         env = super(PsutilRecipe, self).get_recipe_env(arch)

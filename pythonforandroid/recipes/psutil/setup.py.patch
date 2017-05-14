@@ -1,0 +1,20 @@
+--- a/setup.py.orig 2017-05-14 19:33:43.420942883 +0300
++++ b/setup.py 2017-05-14 19:36:42.203726500 +0300
+@@ -239,7 +239,7 @@
+     posix_extension = Extension(
+         'psutil._psutil_posix',
+         define_macros=macros,
+-        sources=['psutil/_psutil_posix.c'])
++        sources=['psutil/_psutil_posix.c', 'psutil/ifaddrs.c', 'psutil/compat.c'])
+     if SUNOS:
+         posix_extension.libraries.append('socket')
+         if platform.release() == '5.10':
+--- a/setup.py.orig 2017-05-14 19:33:43.420942883 +0300
++++ b/setup.py 2017-05-14 20:08:13.589664857 +0300
+@@ -219,7 +219,7 @@
+         macros.append(ETHTOOL_MACRO)
+     ext = Extension(
+         'psutil._psutil_linux',
+-        sources=['psutil/_psutil_linux.c'],
++        sources=['psutil/_psutil_linux.c', 'psutil/compat.c'],
+         define_macros=macros)

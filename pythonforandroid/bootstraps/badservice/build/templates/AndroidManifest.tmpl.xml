@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="{{ args.package }}"
+      android:versionCode="{{ args.numeric_version }}"
+      android:versionName="{{ args.version }}"
+      android:installLocation="auto">
+
+    <uses-sdk
+        android:minSdkVersion="{{ args.min_sdk_version }}"
+        android:targetSdkVersion="{{ args.sdk_version }}" />
+
+    <!-- Allow writing to external storage -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    {% for perm in args.permissions %}
+    {% if '.' in perm %}
+    <uses-permission android:name="{{ perm }}" />{% else %}
+    <uses-permission android:name="android.permission.{{ perm }}" />{% endif %}{% endfor %}
+
+    {% if args.wakelock %}
+    <uses-permission android:name="android.permission.WAKE_LOCK" />{% endif %}
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <application
+	android:allowBackup="false"
+        android:icon="@drawable/icon"
+	android:label="@string/app_name"
+	android:theme="@android:style/Theme.NoDisplay">
+
+        {% for m in args.meta_data %}
+        <meta-data android:name="{{ m.split('=', 1)[0] }}"
+		   android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
+
+        <meta-data android:name="wakelock"
+		   android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
+
+        <service android:name="org.kivy.android.PythonService"
+		 android:process=":pythonservice" />
+
+	<service android:name="org.kivy.android.FakeService"
+		 android:process=":fakeservice" />
+
+	<activity android:name=".Launcher">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".BroadcastLauncher"
+		  android:enabled="true"
+		  android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+		<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="{{ args.package }}.START" />
+		<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>

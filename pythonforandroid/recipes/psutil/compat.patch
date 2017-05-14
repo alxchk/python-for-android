@@ -1,0 +1,68 @@
+--- /dev/null	2017-05-13 12:15:11.168417555 +0300
++++ b/psutil/compat.c	2017-05-14 20:06:37.364300018 +0300
+@@ -0,0 +1,65 @@
++#include <sys/syscall.h>
++#include <pthread.h>
++#include "mntent.h"
++
++typedef unsigned long int __cpu_mask;
++
++#define __CPU_SETSIZE 1024
++#define __NCPUBITS (8 * sizeof (__cpu_mask))
++
++typedef struct
++{
++     __cpu_mask __bits[__CPU_SETSIZE / __NCPUBITS];
++} cpu_set_t;
++
++int sched_setaffinity(pid_t pid, size_t cpusetsize, const cpu_set_t *mask) {
++    return syscall(__NR_sched_setaffinity, pid, sizeof(mask), &mask);
++}
++
++int sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t *mask) {
++    return syscall(__NR_sched_getaffinity, pid, cpusetsize, mask);
++}
++
++static struct mntent _mntent;
++static char _buf[8192];
++
++struct mntent* getmntent_r(FILE* fp, struct mntent* e, char* buf, int buf_len) {
++   memset(e, 0, sizeof(*e));
++   while (fgets(buf, buf_len, fp) != NULL) {
++     // Entries look like "proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0".
++     // That is: mnt_fsname mnt_dir mnt_type mnt_opts 0 0.
++     int fsname0, fsname1, dir0, dir1, type0, type1, opts0, opts1;
++     if (sscanf(buf, " %n%*s%n %n%*s%n %n%*s%n %n%*s%n %d %d",
++                &fsname0, &fsname1, &dir0, &dir1, &type0, &type1, &opts0, &opts1,
++                &e->mnt_freq, &e->mnt_passno) == 2) {
++       e->mnt_fsname = &buf[fsname0];
++       buf[fsname1] = '\0';
++ 
++       e->mnt_dir = &buf[dir0];
++       buf[dir1] = '\0';
++ 
++       e->mnt_type = &buf[type0];
++       buf[type1] = '\0';
++ 
++       e->mnt_opts = &buf[opts0];
++       buf[opts1] = '\0';
++ 
++       return e;
++     }
++   }
++   return NULL;
++ }
++ 
++struct mntent* getmntent(FILE* fp) {
++  return getmntent_r(fp, &_mntent, _buf, sizeof(_buf));
++}
++
++FILE* setmntent(const char* path, const char* mode) {
++  return fopen(path, mode);
++}
++int endmntent(FILE* fp) {
++  if (fp != NULL) {
++    fclose(fp);
++  }
++  return 1;
++}

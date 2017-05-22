@@ -31,6 +31,8 @@ public class PythonService extends FakeService implements Runnable {
     private String pythonServiceArgument;
     private int notificationIcon;
 
+    public static PythonService mService = null;
+
     public int getStartType() {
         return Service.START_STICKY;
     }
@@ -131,6 +133,7 @@ public class PythonService extends FakeService implements Runnable {
     @Override
     public void run() {
         PythonUtil.loadLibraries(getFilesDir());
+        mService = this;
         nativeStart(androidPrivate, androidArgument, serviceEntrypoint, pythonName, pythonHome,
                 pythonPath, pythonServiceArgument);
         stopSelf();

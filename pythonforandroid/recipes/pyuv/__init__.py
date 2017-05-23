@@ -19,7 +19,6 @@ class PyuvRecipe(CompiledComponentsPythonRecipe):
     def get_recipe_env(self, arch):
         env = super(PyuvRecipe, self).get_recipe_env(arch)
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-        env['HOST'] = '-'.join(basename(env['CC'].split()[1]).split('-')[:-1])
         env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \

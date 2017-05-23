@@ -15,7 +15,7 @@
              else:
                  exec_process(['sh', 'autogen.sh'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
 -                exec_process(['./configure'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
-+                exec_process(['./configure', '--host={}'.format(env.get('HOST', ''))], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
++                exec_process(['./configure', '--host={}'.format(env.get('TOOLCHAIN_PREFIX', ''))], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
                  exec_process(['make'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
          if self.libuv_force_fetch:
              rmtree('deps')

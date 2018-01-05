@@ -1,0 +1,18 @@
+--- a/setup.py	2018-01-04 09:13:05.639707973 +0200
++++ b/setup.py	2018-01-05 09:08:59.722015108 +0200
+@@ -8,15 +8,10 @@
+ 
+ else:
+     cflags = [ '-g', '-O3', '-Wall', '-std=gnu89' ]
+-    if system == 'Linux':
+-        libs = [ 'rt' ]
+-    else:
+-        libs = []
+ 
+ kcp = Extension(
+     'kcp',
+     sources=[ 'pykcp.c' ],
+-    libraries=libs,
+     extra_compile_args=cflags
+ )
+ 

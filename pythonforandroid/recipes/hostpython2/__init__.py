@@ -6,8 +6,8 @@ import sh
 
 
 class Hostpython2Recipe(Recipe):
-    version = '2.7.2'
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
+    version = '2.7.15'
+    url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'hostpython2'
 
     conflicts = ['hostpython3']
@@ -39,7 +39,8 @@ class Hostpython2Recipe(Recipe):
             configure = sh.Command('./configure')
 
             shprint(configure)
-            shprint(sh.make, '-j5')
+            shprint(sh.make, '-j5', "CFLAGS+='-DXML_DEV_URANDOM'")
+            shprint(sh.make, '-j5', "CFLAGS+='-DXML_DEV_URANDOM'", join('Parser', 'pgen'))
 
             shprint(sh.mv, join('Parser', 'pgen'), 'hostpgen')
 

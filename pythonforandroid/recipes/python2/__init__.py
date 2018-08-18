@@ -8,33 +8,37 @@ import sh
 
 
 class Python2Recipe(TargetPythonRecipe):
-    version = "2.7.2"
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
+    version = "2.7.15"
+    url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python2'
 
     depends = ['hostpython2']
     conflicts = ['python3crystax', 'python3']
     opt_depends = ['openssl','sqlite3']
     
-    patches = ['patches/Python-{version}-xcompile.patch',
-               'patches/Python-{version}-ctypes-disable-wchar.patch',
-               'patches/disable-modules.patch',
+    patches = [
+    #           'patches/Python-{version}-xcompile.patch',
+    #           'patches/Python-{version}-ctypes-disable-wchar.patch',
+    #           'patches/disable-modules.patch',
                'patches/fix-locale.patch',
                'patches/fix-gethostbyaddr.patch',
                'patches/fix-setup-flags.patch',
                'patches/fix-filesystemdefaultencoding.patch',
                'patches/fix-termios.patch',
                'patches/custom-loader.patch',
-               'patches/verbose-compilation.patch',
-               'patches/fix-remove-corefoundation.patch',
-               'patches/fix-dynamic-lookup.patch',
+    #           'patches/verbose-compilation.patch',
+    #           'patches/fix-remove-corefoundation.patch',
+    #           'patches/fix-dynamic-lookup.patch',
                'patches/fix-dlfcn.patch',
-               'patches/parsetuple.patch',
+               'patches/fix-pwdmodule.patch',
+               'patches/fix-posixmodule.patch',
+    #           'patches/parsetuple.patch',
                'patches/ctypes-find-library-updated.patch',
-               ('patches/fix-configure-darwin.patch', is_darwin),
-               ('patches/fix-distutils-darwin.patch', is_darwin),
-               ('patches/fix-ftime-removal.patch', is_api_gt(19)),
-               ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))]
+    #           ('patches/fix-configure-darwin.patch', is_darwin),
+    #           ('patches/fix-distutils-darwin.patch', is_darwin),
+               ('patches/fix-ftime-removal.patch', is_api_gt(19))
+    #           ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))
+    ]
 
     from_crystax = False
 
@@ -88,7 +92,11 @@ class Python2Recipe(TargetPythonRecipe):
             # lines
             env['HOSTARCH'] = 'arm-eabi'
             env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
-            env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
+            env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO', '-DXML_DEV_URANDOM'])
+            env['ac_cv_file__dev_ptmx'] = 'yes'
+            env['ac_cv_file__dev_ptc'] = 'no'
+
+            info('GCC: {}'.format(sh.gcc))
 
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
@@ -114,11 +122,11 @@ class Python2Recipe(TargetPythonRecipe):
             configure = sh.Command('./configure')
             # AND: OFLAG isn't actually set, should it be?
             shprint(configure,
-                    '--host={}'.format(env['HOSTARCH']),
+                    '--host={}'.format(env.get('TOOLCHAIN_PREFIX', '')),
                     '--build={}'.format(env['BUILDARCH']),
                     # 'OPT={}'.format(env['OFLAG']),
                     '--prefix={}'.format(realpath('./python-install')),
-                    '--enable-shared',
+                    '--enable-shared', '--enable-ipv6',
                     '--disable-toolbox-glue',
                     '--disable-framework',
                     _env=env)
@@ -144,7 +152,7 @@ class Python2Recipe(TargetPythonRecipe):
 
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')
-            shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
+            shprint(make, '-j5', 'install', 'PYTHON_FOR_BUILD={}'.format(hostpython),
                     'HOSTPGEN={}'.format(hostpgen),
                     'CROSS_COMPILE_TARGET=yes',
                     'INSTSONAME=libpython2.7.so',

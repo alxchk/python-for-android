@@ -1,0 +1,14 @@
+--- Python-2.7.15/Modules/pwdmodule.c.orig	2018-08-18 19:39:05.582102726 +0300
++++ Python-2.7.15/Modules/pwdmodule.c	2018-08-18 19:52:54.413168513 +0300
+@@ -75,11 +75,7 @@
+ #endif
+     PyStructSequence_SET_ITEM(v, setIndex++, _PyInt_FromUid(p->pw_uid));
+     PyStructSequence_SET_ITEM(v, setIndex++, _PyInt_FromGid(p->pw_gid));
+-#ifdef __VMS
+     SETS(setIndex++, "");
+-#else
+-    SETS(setIndex++, p->pw_gecos);
+-#endif
+     SETS(setIndex++, p->pw_dir);
+     SETS(setIndex++, p->pw_shell);
+ 

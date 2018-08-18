@@ -133,6 +133,8 @@ zipimport zipimport.c
 
 # ======================================================================
 
+_io -I$(srcdir)/Modules/_io _io/bufferedio.c _io/bytesio.c _io/fileio.c _io/iobase.c _io/_iomodule.c _io/stringio.c _io/textio.c
+
 # The Python symtable module depends on .h files that setup.py doesn't track
 _symtable symtablemodule.c
 
@@ -169,11 +171,12 @@ GLHACK=-Dclear=__GLclear
 
 array arraymodule.c	# array objects
 cmath cmathmodule.c # -lm # complex math library functions
-math mathmodule.c # -lm # math library functions, e.g. sin()
+math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
 _struct _struct.c	# binary structure packing/unpacking
 time timemodule.c # -lm # time operations and variables
 operator operator.c	# operator.add() and similar goodies
 _weakref _weakref.c	# basic weak reference support
+_heapq _heapqmodule.c		# Heapq type
 #_testcapi _testcapimodule.c    # Python C API test module
 _random _randommodule.c	# Random number generator
 _collections _collectionsmodule.c # Container types
@@ -181,11 +184,11 @@ itertools itertoolsmodule.c	# Functions creating iterators for efficient looping
 strop stropmodule.c		# String manipulations
 _functools _functoolsmodule.c	# Tools for working with functions and callable objects
 _elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
-#_pickle _pickle.c	# pickle accelerator
+# _pickle _pickle.c	# pickle accelerator
 datetime datetimemodule.c	# date/time type
 _bisect _bisectmodule.c	# Bisection algorithms
 
-#unicodedata unicodedata.c    # static Unicode character database
+unicodedata unicodedata.c    # static Unicode character database
 
 # access to ISO C locale support
 #_locale _localemodule.c  # -lintl

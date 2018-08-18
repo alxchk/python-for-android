@@ -11,8 +11,6 @@ public class PythonUtil {
         return new String[]{
                 "python2.7",
                 "main",
-                "/lib/python2.7/lib-dynload/_io.so",
-                "/lib/python2.7/lib-dynload/unicodedata.so",
                 "/lib/python2.7/lib-dynload/_ctypes.so",
         };
     }

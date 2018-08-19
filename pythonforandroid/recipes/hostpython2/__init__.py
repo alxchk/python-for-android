@@ -1,7 +1,7 @@
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
 from os.path import join, exists
-from os import chdir
+import os
 import sh
 
 
@@ -35,7 +35,9 @@ class Hostpython2Recipe(Recipe):
                 self.ctx.hostpgen = join(self.get_build_dir(),
                                            'hostpgen')
                 return
-            
+
+            if 'LIBS' in os.environ:
+                os.environ.pop('LIBS')
             configure = sh.Command('./configure')
 
             shprint(configure)

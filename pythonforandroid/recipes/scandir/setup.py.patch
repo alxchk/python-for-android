@@ -1,0 +1,30 @@
+--- scandir-1.9.0.orig/setup.py.orig	2018-08-10 16:21:31.000000000 +0300
++++ scandir-1.9.0/setup.py	2018-08-19 06:51:17.929979520 +0300
+@@ -1,16 +1,7 @@
+ """Run "python setup.py install" to install scandir."""
+ 
+-try:
+-    from setuptools import setup, Extension
+-    from setuptools.command.build_ext import build_ext as base_build_ext
+-except ImportError:
+-    import warnings
+-    import sys
+-    val = sys.exc_info()[1]
+-
+-    warnings.warn("import of setuptools failed %r" % val)
+-    from distutils.core import setup, Extension
+-    from distutils.command.build_ext import build_ext as base_build_ext
++from distutils.core import setup, Extension
++from distutils.command.build_ext import build_ext as base_build_ext
+ 
+ import os
+ import re
+@@ -45,7 +36,7 @@
+             exception = sys.exc_info()[0]
+             logging.warn("building the %s failed with %s", ext.name, exception)
+ 
+-extension = Extension('_scandir', ['_scandir.c'], optional=True)
++extension = Extension('_scandir', ['_scandir.c'], optional=False)
+ 
+ 
+ setup(

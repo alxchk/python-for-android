@@ -1,10 +1,4 @@
-from pythonforandroid.toolchain import (
-    CompiledComponentsPythonRecipe,
-    Recipe,
-    current_directory,
-    info,
-    shprint,
-)
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from os.path import join
 import sh
 

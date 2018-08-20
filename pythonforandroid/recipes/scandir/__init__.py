@@ -19,24 +19,26 @@ class ScandirRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] = (env.get('CFLAGS', '') + ' -L' +
                           self.ctx.get_libs_dir(arch.arch))
         env['LDFLAGS'] += ' -L{}'.format(os.path.join(self.ctx.bootstrap.build_dir, 'libs', arch.arch))
-        # required for libc and libdl
-        ndk_dir = self.ctx.ndk_platform
-        ndk_lib_dir = os.path.join(ndk_dir, 'usr', 'lib')
-        env['LDFLAGS'] += ' -L{}'.format(ndk_lib_dir)
+
+        python_version = self.ctx.python_recipe.version[0:3]
+        ndk_dir_python = os.path.join(self.ctx.ndk_dir, 'sources/python/', python_version)
+        env['LDFLAGS'] += ' -L{}'.format(os.path.join(ndk_dir_python, 'libs', arch.arch))
         env['LDFLAGS'] += " --sysroot={}".format(self.ctx.ndk_platform)
         env['PYTHONPATH'] = ':'.join([
             self.ctx.get_site_packages_dir(),
             env['BUILDLIB_PATH'],
         ])
+
         if self.ctx.ndk == 'crystax':
             # only keeps major.minor (discards patch)
-            python_version = self.ctx.python_recipe.version[0:3]
-            ndk_dir_python = os.path.join(self.ctx.ndk_dir, 'sources/python/', python_version)
-            env['LDFLAGS'] += ' -L{}'.format(os.path.join(ndk_dir_python, 'libs', arch.arch))
             env['LDFLAGS'] += ' -lpython{}m'.format(python_version)
             # until `pythonforandroid/archs.py` gets merged upstream:
             # https://github.com/kivy/python-for-android/pull/1250/files#diff-569e13021e33ced8b54385f55b49cbe6
-            env['CFLAGS'] += ' -I{}/include/python/'.format(ndk_dir_python)
+        else:
+            env['LDFLAGS'] += ' -lpython{}'.format(python_version)
+
+        env['CFLAGS'] += ' -I{}/include/python/'.format(ndk_dir_python)
+
         return env
 
 

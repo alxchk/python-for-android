@@ -7,7 +7,7 @@ from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, in
 
 class ServiceBootstrap(Bootstrap):
 
-    name = 'service_only'
+    name = 'badservice'
 
     recipe_depends = ['genericndkbuild', ('python2', 'python3crystax')]
 

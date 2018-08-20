@@ -2,7 +2,7 @@ diff --git a/Lib/ctypes/util.py b/Lib/ctypes/util.py
 index 52b3520..01b13a9 100644
 --- a/Lib/ctypes/util.py
 +++ b/Lib/ctypes/util.py
-@@ -71,7 +71,23 @@ if os.name == "ce":
+@@ -71,7 +71,25 @@ if os.name == "ce":
      def find_library(name):
          return name
  
@@ -10,10 +10,12 @@ index 52b3520..01b13a9 100644
 +# This patch overrides the find_library to look in the right places on
 +# Android
 +if True:
++    path_parts = os.path.abspath(__file__).split(os.path.sep)
++    app_root = path_parts[:path_parts.index('files')]
++    lib_search = os.path.sep.join(app_root) + os.path.sep + 'lib'
++
 +    def find_library(name):
 +        # Check the user app lib dir
-+        app_root = os.path.abspath('../../').split(os.path.sep)
-+        lib_search = os.path.sep.join(app_root) + os.path.sep + 'lib'
 +        for filename in os.listdir(lib_search):
 +            if filename.endswith('.so') and name in filename:
 +                return lib_search + os.path.sep + filename

@@ -13,7 +13,8 @@ class PyjniusRecipe(CythonRecipe):
     site_packages_name = 'jnius'
 
     patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')),
-               ('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild'))]
+               ('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild')),
+               ('workaround-global-classloader.patch', will_build('genericndkbuild'))]
 
     def postbuild_arch(self, arch):
         super(PyjniusRecipe, self).postbuild_arch(arch)

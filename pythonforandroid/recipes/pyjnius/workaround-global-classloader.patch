@@ -1,0 +1,133 @@
+diff --git a/jnius/jnius_export_class.pxi b/jnius/jnius_export_class.pxi
+index 49c8e5e..38edcb4 100644
+--- a/jnius/jnius_export_class.pxi
++++ b/jnius/jnius_export_class.pxi
+@@ -130,7 +130,7 @@ class MetaJavaClass(MetaJavaBase):
+ 
+         if NULL == obj:
+             for interface in getattr(value, '__javainterfaces__', []):
+-                obj = j_env[0].FindClass(j_env, str_for_c(interface))
++                obj = find_javaclass_raw(j_env, str_for_c(interface), False)
+                 if obj == NULL:
+                     j_env[0].ExceptionClear(j_env)
+                 elif 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
+@@ -161,11 +161,11 @@ class MetaJavaClass(MetaJavaBase):
+         cdef JNIEnv *j_env = get_jnienv()
+ 
+         if __javainterfaces__ and __javabaseclass__:
+-            baseclass = j_env[0].FindClass(j_env, <char*>__javabaseclass__)
++            baseclass = find_javaclass_raw(j_env, <char*>__javabaseclass__, True)
+             interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
+ 
+             for n, i in enumerate(__javainterfaces__):
+-                interfaces[n] = j_env[0].FindClass(j_env, <char*>i)
++                interfaces[n] = find_javaclass_raw(j_env, <char*>i, True)
+ 
+             getProxyClass = j_env[0].GetStaticMethodID(
+                 j_env, baseclass, "getProxyClass",
+@@ -190,11 +190,7 @@ class MetaJavaClass(MetaJavaBase):
+                         ' {0}'.format(__javaclass__))
+         else:
+             class_name = str_for_c(__javaclass__)
+-            jcs.j_cls = j_env[0].FindClass(j_env,
+-                    <char *>class_name)
+-            if jcs.j_cls == NULL:
+-                raise JavaException('Unable to find the class'
+-                        ' {0}'.format(__javaclass__))
++            jcs.j_cls = find_javaclass_raw(j_env, <char *>class_name, True)
+ 
+         # XXX do we need to grab a ref here?
+         # -> Yes, according to http://developer.android.com/training/articles/perf-jni.html
+diff --git a/jnius/jnius_export_func.pxi b/jnius/jnius_export_func.pxi
+index bae5f95..fe4861f 100644
+--- a/jnius/jnius_export_func.pxi
++++ b/jnius/jnius_export_func.pxi
+@@ -1,5 +1,8 @@
+ from cpython.version cimport PY_MAJOR_VERSION
+ 
++cdef extern jobject gClassLoader
++cdef extern jmethodID gFindClassMethod
++
+ def cast(destclass, obj):
+     cdef JavaClass jc
+     cdef JavaClass jobj = obj
+@@ -12,23 +15,45 @@ def cast(destclass, obj):
+     jc.instanciate_from(jobj.j_self)
+     return jc
+ 
++cdef jclass find_javaclass_raw(JNIEnv *j_env, bytes name, jboolean throw) except *:
++    cdef jclass jc = NULL
++    cdef jboolean exception_flag
++
++    jc = j_env[0].FindClass(j_env, name)
++
++    exception_flag = j_env[0].ExceptionCheck(j_env)
++
++    if exception_flag and gClassLoader != NULL and gFindClassMethod != NULL:
++        j_env[0].ExceptionClear(j_env)
++
++        jc = j_env[0].CallObjectMethod(
++            j_env, gClassLoader, gFindClassMethod,
++            j_env[0].NewStringUTF(j_env, name))
++
++        exception_flag = j_env[0].ExceptionCheck(j_env)
++
++    if exception_flag:
++        j_env[0].ExceptionClear(j_env)
++
++        if throw:
++            raise JavaException('Class not found {0!r}'.format(name))
++        else:
++            jc = NULL
++
++    return jc
++
+ def find_javaclass(namestr):
+-    namestr = namestr.replace('.', '/')
+-    cdef bytes name = str_for_c(namestr)
+     from .reflect import Class
+     cdef JavaClass cls
+-    cdef jclass jc
++    cdef jclass jc = NULL
+     cdef JNIEnv *j_env = get_jnienv()
+ 
+-    jc = j_env[0].FindClass(j_env, name)
+-    if jc == NULL:
+-        j_env[0].ExceptionClear(j_env)
+-        raise JavaException('Class not found {0!r}'.format(name))
++    namestr = namestr.replace('.', '/')
++    cdef bytes name = str_for_c(namestr)
+ 
+-    check_exception(j_env)
++    jc = find_javaclass_raw(j_env, name, True)
+ 
+     cls = Class(noinstance=True)
+     cls.instanciate_from(create_local_ref(j_env, jc))
+     j_env[0].DeleteLocalRef(j_env, jc)
+     return cls
+-
+diff --git a/jnius/jnius_utils.pxi b/jnius/jnius_utils.pxi
+index 4a430b9..2d45f02 100644
+--- a/jnius/jnius_utils.pxi
++++ b/jnius/jnius_utils.pxi
+@@ -13,7 +13,7 @@ cdef items_compat(d):
+      if PY_MAJOR_VERSION >= 3:
+          return d.items()
+      else:
+-        return d.iteritems()                
++        return d.iteritems()
+ 
+ cdef parse_definition(definition):
+     # not a function, just a field
+@@ -186,10 +186,7 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, signature) except *:
+         # we got an object that doesn't match with the signature
+         # check if we can use it.
+         s = str_for_c(signature)
+-        cls = env[0].FindClass(env, s)
+-        if cls == NULL:
+-            raise JavaException('Unable to found the class for {0!r}'.format(
+-                signature))
++        cls = find_javaclass_raw(env, s, True)
+ 
+         if assignable_from_order == 1:
+             result = bool(env[0].IsAssignableFrom(env, jc.j_cls, cls))

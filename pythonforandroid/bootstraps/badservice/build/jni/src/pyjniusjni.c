@@ -2,9 +2,6 @@
 #include <pthread.h>
 #include <jni.h>
 
-#define LOGI(...) do {} while (0)
-#define LOGE(...) do {} while (0)
-
 #include "android/log.h"
 
 /* These JNI management functions are taken from SDL2, but modified to refer to pyjnius */
@@ -19,22 +16,21 @@
 /* Function headers */
 JNIEnv* Android_JNI_GetEnv(void);
 static void Android_JNI_ThreadDestroyed(void*);
+static void Android_JNI_SetupGlobalClassLoader(JNIEnv *j_env);
 
 static pthread_key_t mThreadKey;
 static JavaVM* mJavaVM;
 
-int Android_JNI_SetupThread(void)
-{
-    Android_JNI_GetEnv();
-    return 1;
-}
+jobject gClassLoader = NULL;
+jmethodID gFindClassMethod = NULL;
 
 /* Library init */
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 {
     JNIEnv *env;
     mJavaVM = vm;
-    LOGI("JNI_OnLoad called");
+
+    LOGI("JNI_OnLoad called [badservice] (JVM: %p)", vm);
     if ((*mJavaVM)->GetEnv(mJavaVM, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
         LOGE("Failed to get the environment using GetEnv()");
         return -1;
@@ -44,12 +40,91 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
      * Refer to http://developer.android.com/guide/practices/design/jni.html for the rationale behind this
      */
     if (pthread_key_create(&mThreadKey, Android_JNI_ThreadDestroyed) != 0) {
-
         __android_log_print(ANDROID_LOG_ERROR, "pyjniusjni", "Error initializing pthread key");
     }
-    Android_JNI_SetupThread();
 
-    return JNI_VERSION_1_4;
+	Android_JNI_SetupGlobalClassLoader(env);
+	Android_JNI_GetEnv();
+
+    return JNI_VERSION_1_6;
+}
+
+void Android_JNI_SetupGlobalClassLoader(JNIEnv *j_env)
+{
+	LOGI("SetupGlobalClassLoader #1");
+
+    jclass PythonServiceClass = (*j_env)->FindClass(j_env, "org/kivy/android/PythonService");
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: org/kivy/android/PythonService not found");
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #2 (%p)", PythonServiceClass);
+
+	jclass ClassOfPythonServiceClass = (*j_env)->GetObjectClass(j_env, PythonServiceClass);
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: org/kivy/android/PythonService GetObjectClass failed");
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #4 (%p)", ClassOfPythonServiceClass);
+
+    jmethodID getClassLoader = (*j_env)->GetMethodID(
+		j_env, ClassOfPythonServiceClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
+
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: getClassLoader not found");
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #5 (%p)", getClassLoader);
+
+    gClassLoader = (*j_env)->CallObjectMethod(j_env, PythonServiceClass, getClassLoader);
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: getClassLoader failed");
+		gClassLoader = NULL;
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #6 ! (%p)", gClassLoader);
+
+	gClassLoader = (*j_env)->NewGlobalRef(j_env, gClassLoader);
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: NewGlobalRef failed");
+		gClassLoader = NULL;
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #6  - NEW REF! (%p)", gClassLoader);
+
+	jclass ClassLoaderClass = (*j_env)->GetObjectClass(j_env, gClassLoader);
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: org/kivy/android/PythonService GetObjectClass failed");
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #7  - ClassLoaderClass (%p)", ClassLoaderClass);
+
+	gFindClassMethod = (*j_env)->GetMethodID(
+		j_env, ClassLoaderClass, "findClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("SetupGlobalClassLoader: gFindClassMethod not found");
+		gFindClassMethod = NULL;
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader #8  - FindClassMethod (%p)", gFindClassMethod);
+
+	jclass testClass = (*j_env)->CallObjectMethod(
+		j_env, gClassLoader, gFindClassMethod, (*j_env)->NewStringUTF(j_env, "org/kivy/android/PythonService"));
+	if ((*j_env)->ExceptionCheck(j_env)) {
+		LOGE("TEST FAILED");
+		return;
+	}
+
+	LOGI("SetupGlobalClassLoader: success (%p, %p, %d, %08x)",
+		gClassLoader, gFindClassMethod, (*j_env)->IsSameObject(j_env, PythonServiceClass, testClass), 0xb16b00b5);
 }
 
 JNIEnv* Android_JNI_GetEnv(void)
@@ -84,6 +159,7 @@ JNIEnv* Android_JNI_GetEnv(void)
      */
     pthread_setspecific(mThreadKey, (void*) env);
 
+    LOGI("Android_JNI_GetEnv: %p", env);
     return env;
 }
 

@@ -4,8 +4,8 @@ import sh
 
 class PyuvRecipe(CompiledComponentsPythonRecipe):
     name = 'pyuv'
-    version = '1.3.0'
-    url = 'https://github.com/alxchk/pyuv/archive/v1.x.zip'
+    version = '9d226dd61162a998745681eb87ef34e1a7d8586a'
+    url = 'https://github.com/alxchk/pyuv/archive/{version}.zip'
     call_hostpython_via_targetpython = False
     depends = ['python2']
     patches = ['setup_libuv.patch']

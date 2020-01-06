@@ -1,21 +1,12 @@
---- a/setup_libuv.py.orig	2017-05-18 08:43:22.000000000 +0300
-+++ b/setup_libuv.py	2017-05-22 23:34:59.081736461 +0300
-@@ -159,7 +159,8 @@
-             self.extensions[0].extra_objects.extend([self.libuv_lib])
-             self.compiler.add_include_dir(os.path.join(self.libuv_dir, 'include'))
+diff --git a/setup_libuv.py b/setup_libuv.py
+index 2ad70fb..315de78 100644
+--- a/setup_libuv.py
++++ b/setup_libuv.py
+@@ -142,7 +142,6 @@ class libuv_build_ext(build_ext):
+ 
          if sys.platform.startswith('linux'):
+             self.compiler.add_library('dl')
 -            self.compiler.add_library('rt')
-+            # self.compiler.add_library('rt')
-+            pass
-         elif sys.platform == 'win32':
-             self.extensions[0].define_macros.append(('WIN32', 1))
-             if self.compiler.compiler_type != 'mingw32':
-@@ -198,7 +199,7 @@
-                 exec_process(['cmd.exe', '/C', 'vcbuild.bat', libuv_arch, 'release'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
-             else:
-                 exec_process(['sh', 'autogen.sh'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
--                exec_process(['./configure'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
-+                exec_process(['./configure', '--host={}'.format(env.get('TOOLCHAIN_PREFIX', ''))], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
-                 exec_process(['make'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
-         if self.libuv_force_fetch:
-             rmtree('deps')
+ 
+             self.compiler.add_include_dir(
+                 os.path.join(self.libuv_dir, 'compat', 'linux'))

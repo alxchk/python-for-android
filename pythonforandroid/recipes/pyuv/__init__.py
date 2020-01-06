@@ -4,7 +4,7 @@ import sh
 
 class PyuvRecipe(CompiledComponentsPythonRecipe):
     name = 'pyuv'
-    version = '9d226dd61162a998745681eb87ef34e1a7d8586a'
+    version = 'v1.x'
     url = 'https://github.com/alxchk/pyuv/archive/{version}.zip'
     call_hostpython_via_targetpython = False
     depends = ['python2']

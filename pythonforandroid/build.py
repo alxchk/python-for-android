@@ -505,6 +505,19 @@ class Context(object):
         return join(self.get_python_install_dir(),
                     'lib', 'python2.7', 'site-packages')
 
+    def get_packages_dir(self, arch=None):
+        '''Returns the location of python lib in the python-install build
+        dir.
+        '''
+
+        # This needs to be replaced with something more general in
+        # order to support multiple python versions and/or multiple
+        # archs.
+        if self.python_recipe.from_crystax:
+            return self.get_python_install_dir()
+        return join(self.get_python_install_dir(),
+                    'lib', 'python2.7')
+
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
         ensure_dir(join(self.libs_dir, arch))
@@ -608,7 +621,7 @@ def run_pymodules_install(ctx, modules):
 
     venv = sh.Command(ctx.virtualenv)
     with current_directory(join(ctx.build_dir)):
-        shprint(venv, '--python=python2.7', 'venv')
+        shprint(venv, '--python=/usr/bin/python2.7', 'venv')
 
         info('Creating a requirements.txt file for the Python modules')
         with open('requirements.txt', 'w') as fileh:
@@ -629,8 +642,8 @@ def run_pymodules_install(ctx, modules):
         # It works but should be replaced with something better
         shprint(sh.bash, '-c', (
             "source venv/bin/activate && env CC=/bin/false CXX=/bin/false "
-            "PYTHONPATH={0} pip install --target '{0}' --no-deps -r requirements.txt"
-        ).format(ctx.get_site_packages_dir()))
+            "pip install --target '{0}' --no-deps -r requirements.txt"
+        ).format(ctx.get_site_packages_dir(), ctx.get_packages_dir()))
 
 
 def biglink(ctx, arch):

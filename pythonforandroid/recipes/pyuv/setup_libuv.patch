@@ -1,12 +1,10 @@
-diff --git a/setup_libuv.py b/setup_libuv.py
-index 2ad70fb..315de78 100644
---- a/setup_libuv.py
-+++ b/setup_libuv.py
-@@ -142,7 +142,6 @@ class libuv_build_ext(build_ext):
+--- a/setup_libuv.py.orig	2017-07-08 16:12:17.000000000 +0300
++++ a/setup_libuv.py	2020-03-29 15:38:55.768185295 +0300
+@@ -143,7 +143,6 @@
  
          if sys.platform.startswith('linux'):
              self.compiler.add_library('dl')
 -            self.compiler.add_library('rt')
- 
-             self.compiler.add_include_dir(
-                 os.path.join(self.libuv_dir, 'compat', 'linux'))
+         elif sys.platform == 'darwin':
+             self.compiler.define_macro('_DARWIN_USE_64_BIT_INODE', 1)
+             self.compiler.define_macro('_DARWIN_UNLIMITED_SELECT', 1)

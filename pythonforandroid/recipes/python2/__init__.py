@@ -75,7 +75,7 @@ class Python2Recipe(TargetPythonRecipe):
             env = arch.get_env()
 
             env['HOSTARCH'] = 'arm-eabi'
-            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
+            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0].encode('utf-8')
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO', '-DXML_DEV_URANDOM'])
             env['ac_cv_file__dev_ptmx'] = 'yes'
             env['ac_cv_file__dev_ptc'] = 'no'
